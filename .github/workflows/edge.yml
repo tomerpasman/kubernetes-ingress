@@ -67,7 +67,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v2
         with:
           version: latest
-          args: build --snapshot --rm-dist --id kubernetes-ingress
+          args: build --snapshot --rm-dist --id kubernetes-ingress --single-target
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GOPATH: ${{ env.GOPATH }}
@@ -144,13 +144,13 @@ jobs:
           image-ref: '${{ matrix.image }}:${{ github.sha }}'
           format: 'template'
           template: '@/contrib/sarif.tpl'
-          output: 'trivy-results-${{ matrix.image }}.sarif'
+          output: 'results/trivy-results-${{ matrix.image }}.sarif'
           ignore-unfixed: 'true'
       - name: Upload Scan Results
         uses: actions/upload-artifact@v2
         with:
-          name: 'results/trivy-results-${{ matrix.image }}.sarif'
-          path: 'trivy-results-${{ matrix.image }}.sarif'
+          name: 'results'
+          path: 'results'
         if: always()
   upload:
     name: Container Scanning
