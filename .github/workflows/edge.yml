@@ -162,6 +162,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: results
+          path: results
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v1
         with:
