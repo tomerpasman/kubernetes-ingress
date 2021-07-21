@@ -146,17 +146,25 @@ jobs:
           template: '@/contrib/sarif.tpl'
           output: 'trivy-results-${{ matrix.image }}.sarif'
           ignore-unfixed: 'true'
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          sarif_file: 'trivy-results-${{ matrix.image }}.sarif'
       - name: Upload Scan Results
         uses: actions/upload-artifact@v2
         with:
-          name: 'trivy-results-${{ matrix.image }}.sarif'
+          name: 'results/trivy-results-${{ matrix.image }}.sarif'
           path: 'trivy-results-${{ matrix.image }}.sarif'
         if: always()
-
+  upload:
+    name: Container Scanning
+    runs-on: ubuntu-20.04
+    needs: container-scan
+    steps:
+      - name: Upload Scan Results
+        uses: actions/download-artifact@v2
+        with:
+          name: results
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: results
   smoke-tests:
     name: Smoke Tests
     runs-on: ubuntu-20.04
