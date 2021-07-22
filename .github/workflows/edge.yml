@@ -67,7 +67,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v2
         with:
           version: latest
-          args: build --snapshot --rm-dist --id kubernetes-ingress --single-target
+          args: build --snapshot --rm-dist --id kubernetes-ingress
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GOPATH: ${{ env.GOPATH }}
@@ -98,11 +98,7 @@ jobs:
     needs: binary
     strategy:
       matrix:
-        image: [debian, alpine, opentracing, ubi]
-        ubi_version: ["8"]
-        include:
-          - image: ubi
-            ubi_version: 7
+        image: [debian]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -110,7 +106,6 @@ jobs:
         id: commit
         run: |
           echo "::set-output name=nginx_version::$(cat build/Dockerfile | grep -m1 "FROM nginx:" | cut -d":" -f2 | cut -d" " -f1)"
-          mkdir -p results
       - name: Fetch Cached Artifacts
         uses: actions/cache@v2
         with:
@@ -145,28 +140,19 @@ jobs:
           image-ref: '${{ matrix.image }}:${{ github.sha }}'
           format: 'template'
           template: '@/contrib/sarif.tpl'
-          output: 'results/trivy-results-${{ matrix.image }}.sarif'
+          output: 'trivy-results-${{ matrix.image }}.sarif'
           ignore-unfixed: 'true'
-      - name: Upload Scan Results
-        uses: actions/upload-artifact@v2
-        with:
-          name: 'results'
-          path: 'results'
-        if: always()
-  upload:
-    name: Container Scanning
-    runs-on: ubuntu-20.04
-    needs: container-scan
-    steps:
-      - name: Upload Scan Results
-        uses: actions/download-artifact@v2
-        with:
-          name: results
-          path: results
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v1
         with:
-          sarif_file: results
+          sarif_file: 'trivy-results-${{ matrix.image }}.sarif'
+      - name: Upload Scan Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: 'trivy-results-${{ matrix.image }}.sarif'
+          path: 'trivy-results-${{ matrix.image }}.sarif'
+        if: always()
+
   smoke-tests:
     name: Smoke Tests
     runs-on: ubuntu-20.04
