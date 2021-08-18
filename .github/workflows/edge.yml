@@ -193,7 +193,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/dist
-          key: nginx-ingress-${{ github.run_id }}-${{ github.run_number }}
+          key: nginx-ingress-${{ github.run_id }}-${{ github.run_number }}-single
       - name: Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Build ${{ matrix.image }} Container
@@ -269,7 +269,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/dist
-          key: nginx-ingress-${{ github.run_id }}-${{ github.run_number }}
+          key: nginx-ingress-${{ github.run_id }}-${{ github.run_number }}-single
       - name: Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Build Docker Image nginx-ingress
@@ -315,7 +315,7 @@ jobs:
     name: Build Binaries for release
     runs-on: ubuntu-20.04
     needs: [checks, smoke-tests, helm-tests]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    # if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -343,7 +343,7 @@ jobs:
     name: Release Images
     runs-on: ubuntu-20.04
     needs: [checks, binaries-release]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    # if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     strategy:
       matrix:
         include:
@@ -392,7 +392,7 @@ jobs:
           target: goreleaser
           tags: nginx/nginx-ingress:${{ matrix.tag }}
           platforms: ${{ matrix.platforms }}
-          push: true
+          push: false # revert to true
           build-args: |
             BUILD_OS=${{ matrix.type }}
             IC_VERSION=${{ steps.commit.outputs.tag }}-SNAPSHOT-${{ needs.checks.outputs.sha_short }}
